@@ -142,6 +142,6 @@ def main():
     
     
     st.write("Developer: Sercan Gul (sercan.gul@gmail.com, https://github.com/sercangul)")
-    st.write("Source code: https://github.com/sercangul/viscometer_streamlitapp")
+    st.write("Source code: https://github.com/sercangul/apiviscometer")
 if __name__ == "__main__":
     main()
