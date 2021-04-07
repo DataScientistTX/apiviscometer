@@ -67,12 +67,12 @@ def main():
     #sigma = [276,190,156,115,52,48]
     shearrate = [1021.4,510.7,340.5,170.2,10.2,5.1]
     
-    box600 = st.sidebar.slider('Viscometer Dial Reading at 600 RPM',  min_value = 0, value = 276, max_value = 300, step=1)
-    box300 = st.sidebar.slider('Viscometer Dial Reading at 300 RPM',  min_value = 0, value = 190, max_value = 300, step=1)
-    box200 = st.sidebar.slider('Viscometer Dial Reading at 200 RPM',  min_value = 0, value = 156, max_value = 300, step=1)
-    box100 = st.sidebar.slider('Viscometer Dial Reading at 100 RPM',  min_value = 0, value = 115, max_value = 300, step=1)
-    box6 = st.sidebar.slider('Viscometer Dial Reading at 6 RPM',  min_value = 0, value = 52, max_value = 300, step=1)
-    box3 = st.sidebar.slider('Viscometer Dial Reading at 3 RPM', min_value = 0, value = 48, max_value = 300, step=1)
+    box600 = st.sidebar.slider('Viscometer Dial Reading at 600 RPM',  min_value = 0, value = 50, max_value = 60, step=1)
+    box300 = st.sidebar.slider('Viscometer Dial Reading at 300 RPM',  min_value = 0, value = 36, max_value = 60, step=1)
+    box200 = st.sidebar.slider('Viscometer Dial Reading at 200 RPM',  min_value = 0, value = 30, max_value = 60, step=1)
+    box100 = st.sidebar.slider('Viscometer Dial Reading at 100 RPM',  min_value = 0, value = 20, max_value = 60, step=1)
+    box6 = st.sidebar.slider('Viscometer Dial Reading at 6 RPM',  min_value = 0, value = 7, max_value = 60, step=1)
+    box3 = st.sidebar.slider('Viscometer Dial Reading at 3 RPM', min_value = 0, value = 6, max_value = 60, step=1)
     
     assert box600>box300, "300 RPM viscometer reading can not be larger than 600 RPM viscometer reading"
     assert box300>box200, "200 RPM viscometer reading can not be larger than 300 RPM viscometer reading"
