@@ -11,62 +11,55 @@ import math
 import matplotlib.pyplot as plt
 plt.style.use('default')
 
+def YPLfunction(y, tauy, K, m):
+    return tauy + K*y**m
+
+def PLfunction(y, K2, n):
+    return  K2*y**n
+
+def rheology_PL(sigma,shearrate):
+    shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion   
+    popt, pcov = curve_fit(PLfunction,shearrate,shearstress)
+    K,m =popt[0],popt[1]
+    residuals = shearstress- PLfunction(shearrate, popt[0],popt[1])
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
+    r_squared = 1 - (ss_res / ss_tot)       
+    
+    return K,m,r_squared
+
+def rheology_YPL(sigma,shearrate):       
+    #Trying the fit for YPL model
+    shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion         
+    popt, pcov = curve_fit(YPLfunction,shearrate,shearstress)
+    tauy,K,m = popt[0],popt[1],popt[2]
+    residuals = shearstress- YPLfunction(shearrate, popt[0],popt[1],popt[2])
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
+    r_squared = 1 - (ss_res / ss_tot)
+    
+    if tauy<0:
+        K,m,r_squared = rheology_PL(sigma,shearrate)
+        tauy = 0
+    return tauy,K,m,r_squared
+  
+    
+def BPr2(stressmeasured,stresscalculated,shearrate):
+    residuals = stressmeasured- stresscalculated
+    ss_res = np.sum(residuals**2)
+    ss_tot = np.sum((stressmeasured-np.mean(stressmeasured))**2)
+    r_squared = 1 - (ss_res / ss_tot)   
+    return r_squared
+
 def main():
     
-    def YPLfunction(y, tauy, K, m):
-        return tauy + K*y**m
-    
-    def PLfunction(y, K2, n):
-        return  K2*y**n
-
-
-    def rheology_PL(sigma,shearrate):
-        shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion   
-        popt, pcov = curve_fit(PLfunction,shearrate,shearstress)
-        K,m =popt[0],popt[1]
-        residuals = shearstress- PLfunction(shearrate, popt[0],popt[1])
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
-        r_squared = 1 - (ss_res / ss_tot)       
-        
-        return K,m,r_squared
-
-    def rheology_YPL(sigma,shearrate):
-        tauy =[]
-        K = []
-        m = []
-        
-        #Trying the fit for YPL model
-        shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion         
-        popt, pcov = curve_fit(YPLfunction,shearrate,shearstress)
-        tauy,K,m = popt[0],popt[1],popt[2]
-        residuals = shearstress- YPLfunction(shearrate, popt[0],popt[1],popt[2])
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
-        r_squared = 1 - (ss_res / ss_tot)
-        
-        if tauy<0:
-            K,m,r_squared = rheology_PL(sigma,shearrate)
-            tauy = 0
-        return tauy,K,m,r_squared
-      
-        
-    def BPr2(stressmeasured,stresscalculated,shearrate):
-        residuals = stressmeasured- stresscalculated
-        ss_res = np.sum(residuals**2)
-        ss_tot = np.sum((stressmeasured-np.mean(stressmeasured))**2)
-        r_squared = 1 - (ss_res / ss_tot)   
-        return r_squared
-  
     st.header("Drilling Fluid Rheological Model Parameters")
     st.write("This web-app is used to analyze API rotational viscometer data by comparing various rheological models.")
     st.write("The rheological constants for Yield Power-law (YPL - also called Herschel-Bulkley), Power-law, and Bingham-Plastic models are calculated and compared.")
     st.write("Please enter API viscometer readings using the slider on the left side.")
-    #Reference data from a WBML MW: 14 ppg + clay: 20 lb/bbl bentonite
-    
-    #sigma = [276,190,156,115,52,48]
+
     shearrate = [1021.4,510.7,340.5,170.2,10.2,5.1]
-    
+
     box600 = st.sidebar.slider('Viscometer Dial Reading at 600 RPM',  min_value = 0, value = 50, max_value = 60, step=1)
     box300 = st.sidebar.slider('Viscometer Dial Reading at 300 RPM',  min_value = 0, value = 36, max_value = 60, step=1)
     box200 = st.sidebar.slider('Viscometer Dial Reading at 200 RPM',  min_value = 0, value = 30, max_value = 60, step=1)
@@ -74,12 +67,21 @@ def main():
     box6 = st.sidebar.slider('Viscometer Dial Reading at 6 RPM',  min_value = 0, value = 7, max_value = 60, step=1)
     box3 = st.sidebar.slider('Viscometer Dial Reading at 3 RPM', min_value = 0, value = 6, max_value = 60, step=1)
     
-    assert box600>box300, "300 RPM viscometer reading can not be larger than 600 RPM viscometer reading"
-    assert box300>box200, "200 RPM viscometer reading can not be larger than 300 RPM viscometer reading"
-    assert box200>box100, "100 RPM viscometer reading can not be larger than 200 RPM viscometer reading"
-    assert box100>box6, "6 RPM viscometer reading can not be larger than 100 RPM viscometer reading"
-    assert box6>box3, "3 RPM viscometer reading can not be larger than 6 RPM viscometer reading"
+    if box6<box3:
+        box6=box3
     
+    if box100<box6:
+        box100=box6
+        
+    if box200<box100:
+        box200 = box100
+        
+    if box300<box200:
+        box300 = box200
+        
+    if box600<box300:
+        box600=box300
+       
     sigma = [box600,box300,box200,box100,box6,box3]
 
     tauy_YPL,K_YPL,m_YPL,r2_YPL = rheology_YPL(sigma,shearrate)
@@ -94,7 +96,6 @@ def main():
         calculation = intercept + slope*i
         sigmacalcBP.append(calculation)
     r2_BP = BPr2(shearstress,sigmacalcBP,shearrate)
-
 
     sigmacalcYPL = tauy_YPL + K_YPL*shearrate**m_YPL
     sigmacalcPL = K_PL*shearrate**m_PL
