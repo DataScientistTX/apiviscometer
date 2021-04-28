@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 plt.style.use('default')
 
 #Define curve fitting functions------------------------------------------------
-
 #y-shear rate
 #K-consistency index
 #n-flow behavior index
@@ -28,7 +27,6 @@ def BPfunction(y,PV,YP):
     return YP + PV*y
 
 #Perform curve fitting and calculate r2----------------------------------------
-
 #PL - power law
 #YPL - yield power law
 #BP - bingham plastic
@@ -38,7 +36,6 @@ def r2(residuals,shear_stress,shear_rate):
     ss_tot = np.sum((shear_stress-np.mean(shear_stress))**2)
     r_squared = 1 - (ss_res / ss_tot) 
     return r_squared
-
 
 def PL(shear_stress,shear_rate):
     popt, pcov = curve_fit(PLfunction,shear_rate,shear_stress)
