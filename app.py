@@ -42,7 +42,7 @@ def rheology_YPL(sigma,shearrate):
         K,m,r_squared = rheology_PL(sigma,shearrate)
         tauy = 0
     return tauy,K,m,r_squared
-  
+#Let's define the r_squared calculation for Bingham Plastic model
     
 def BPr2(stressmeasured,stresscalculated,shearrate):
     residuals = stressmeasured- stresscalculated
