@@ -26,7 +26,6 @@ def rheology_PL(sigma,shearrate):
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
     r_squared = 1 - (ss_res / ss_tot)       
-    
     return K,m,r_squared
 
 def rheology_YPL(sigma,shearrate):       
