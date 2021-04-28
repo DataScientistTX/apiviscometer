@@ -38,6 +38,7 @@ Run the script using Streamlit:
 
 ```bash
 streamlit run app.py
+```
 
 The same app is also deployed to Heroku: http://apiviscometer.herokuapp.com/
 
