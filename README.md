@@ -11,7 +11,7 @@ git clone https://github.com/sercangul/apiviscometer.git
 Change directories to the new ~/FluidLab_GUI directory:
 
 ```bash
-cd ~/apiviscometer/
+cd apiviscometer
 ```
 
 To ensure that your master branch is up-to-date, use the pull command:
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 Change directories to the new ~/apiviscometer directory:
 
 ```bash
-cd ~/apiviscometer/
+cd apiviscometer
 ```
 
 Run the script using Streamlit:
