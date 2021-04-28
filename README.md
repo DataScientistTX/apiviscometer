@@ -17,7 +17,7 @@ cd apiviscometer
 To ensure that your master branch is up-to-date, use the pull command:
 
 ```bash
-git pull https://github.com/sercangul/apiviscometer.git master
+git pull https://github.com/sercangul/apiviscometer.git
 ```
 
 Install required python packages using requirements.txt:
