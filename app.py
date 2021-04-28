@@ -1,148 +1,157 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec 27 01:50:49 2020
+Created on Wed Apr 28 17:01:23 2021
 
-@author: Admin
+@author: sercan
 """
-
+#Import libraries--------------------------------------------------------------
 import streamlit as st
 import numpy as np
 from scipy.optimize import curve_fit   
-import math
 import matplotlib.pyplot as plt
 plt.style.use('default')
 
-def YPLfunction(y, tauy, K, m):
-    return tauy + K*y**m
+#Define curve fitting functions------------------------------------------------
 
-def PLfunction(y, K2, n):
-    return  K2*y**n
+#y-shear rate
+#K-consistency index
+#n-flow behavior index
+#ty-yield stress
 
-def rheology_PL(sigma,shearrate):
-    shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion   
-    popt, pcov = curve_fit(PLfunction,shearrate,shearstress)
-    K,m =popt[0],popt[1]
-    residuals = shearstress- PLfunction(shearrate, popt[0],popt[1])
-    ss_res = np.sum(residuals**2)
-    ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
-    r_squared = 1 - (ss_res / ss_tot)       
-    return K,m,r_squared
+def YPLfunction(y, ty, K, n):
+    return ty + K*y**n
 
-def rheology_YPL(sigma,shearrate):       
-    #Trying the fit for YPL model
-    shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion         
-    popt, pcov = curve_fit(YPLfunction,shearrate,shearstress)
-    tauy,K,m = popt[0],popt[1],popt[2]
-    residuals = shearstress- YPLfunction(shearrate, popt[0],popt[1],popt[2])
+def PLfunction(y, K, n):
+    return  K*y**n
+
+def BPfunction(y,PV,YP):
+    return YP + PV*y
+
+#Perform curve fitting and calculate r2----------------------------------------
+
+#PL - power law
+#YPL - yield power law
+#BP - bingham plastic
+
+def r2(residuals,shear_stress,shear_rate):
     ss_res = np.sum(residuals**2)
-    ss_tot = np.sum((shearstress-np.mean(shearstress))**2)
-    r_squared = 1 - (ss_res / ss_tot)
-    
-    if tauy<0:
-        K,m,r_squared = rheology_PL(sigma,shearrate)
-        tauy = 0
-    return tauy,K,m,r_squared
-#Let's define the r_squared calculation for Bingham Plastic model
-    
-def BPr2(stressmeasured,stresscalculated,shearrate):
-    residuals = stressmeasured- stresscalculated
-    ss_res = np.sum(residuals**2)
-    ss_tot = np.sum((stressmeasured-np.mean(stressmeasured))**2)
-    r_squared = 1 - (ss_res / ss_tot)   
+    ss_tot = np.sum((shear_stress-np.mean(shear_stress))**2)
+    r_squared = 1 - (ss_res / ss_tot) 
     return r_squared
 
-def main():
-    
-    st.header("Drilling Fluid Rheological Model Parameters")
-    st.write("This web-app is used to analyze API rotational viscometer data by comparing various rheological models.")
-    st.write("The rheological constants for Yield Power-law (YPL - also called Herschel-Bulkley), Power-law, and Bingham-Plastic models are calculated and compared.")
-    st.write("Please enter API viscometer readings using the slider on the left side.")
 
-    shearrate = [1021.4,510.7,340.5,170.2,10.2,5.1]
+def PL(shear_stress,shear_rate):
+    popt, pcov = curve_fit(PLfunction,shear_rate,shear_stress)
+    K,m =popt[0],popt[1]
+    residuals = shear_stress- PLfunction(shear_rate, popt[0],popt[1])
+    r_squared = r2(residuals,shear_stress,shear_rate)   
+    return K,m,r_squared
 
-    box600 = st.sidebar.slider('Viscometer Dial Reading at 600 RPM',  min_value = 0, value = 50, max_value = 60, step=1)
-    box300 = st.sidebar.slider('Viscometer Dial Reading at 300 RPM',  min_value = 0, value = 36, max_value = 60, step=1)
-    box200 = st.sidebar.slider('Viscometer Dial Reading at 200 RPM',  min_value = 0, value = 30, max_value = 60, step=1)
-    box100 = st.sidebar.slider('Viscometer Dial Reading at 100 RPM',  min_value = 0, value = 20, max_value = 60, step=1)
-    box6 = st.sidebar.slider('Viscometer Dial Reading at 6 RPM',  min_value = 0, value = 7, max_value = 60, step=1)
-    box3 = st.sidebar.slider('Viscometer Dial Reading at 3 RPM', min_value = 0, value = 6, max_value = 60, step=1)
+def YPL(shear_stress,shear_rate):          
+    popt, pcov = curve_fit(YPLfunction,shear_rate,shear_stress)
+    ty,K,m = popt[0],popt[1],popt[2]
+    residuals = shear_stress- YPLfunction(shear_rate, popt[0],popt[1],popt[2])
+    r_squared = r2(residuals,shear_stress,shear_rate)  
     
-    if box6<box3:
-        box6=box3
-    
-    if box100<box6:
-        box100=box6
-        
-    if box200<box100:
-        box200 = box100
-        
-    if box300<box200:
-        box300 = box200
-        
-    if box600<box300:
-        box600=box300
-       
-    sigma = [box600,box300,box200,box100,box6,box3]
+    if popt[0]<0:
+        K,m,r_squared = PL(shear_stress,shear_rate)
+        ty = 0
+    return ty,K,m,r_squared
+  
+def BP(shear_stress,shear_rate):
+    PV = (shear_stress[0] - shear_stress[1])/511
+    YP = (2*shear_stress[1] - shear_stress[0])
+    residuals = shear_stress- BPfunction(shear_rate, PV, YP)
+    r_squared = r2(residuals,shear_stress,shear_rate) 
+    return r_squared,PV, YP
 
-    tauy_YPL,K_YPL,m_YPL,r2_YPL = rheology_YPL(sigma,shearrate)
-    K_PL,m_PL,r2_PL = rheology_PL(sigma,shearrate)
-    shearstress = np.asarray(sigma) * 1.066 * 0.4788 #unit conversion    
-    
-    slope = (shearstress[0] - shearstress[1])/511
-    intercept = (2*shearstress[1] - shearstress[0])
+#The header and initial comments for the users---------------------------------
+st.header("Drilling Fluid Rheological Model Parameters")
+st.write("This web-app is used to analyze API rotational viscometer data by comparing various rheological models.")
+st.write("The rheological constants for Yield Power-law (YPL - also called Herschel-Bulkley), Power-law, and Bingham-Plastic models are calculated and compared.")
+st.write("Please enter API viscometer readings using the slider on the left side.")
 
-    sigmacalcBP = []
-    for i in shearrate:
-        calculation = intercept + slope*i
-        sigmacalcBP.append(calculation)
-    r2_BP = BPr2(shearstress,sigmacalcBP,shearrate)
+#Define shearrate and rpm values used in the viscometer (for 6-speed viscometer)
+visc_rpm = [600,300,200,100,6,3]
+shear_rate = np.asarray(visc_rpm) * 1.7011 #unit conversion from RPM to 1/s
+dial_readings = []
 
-    sigmacalcYPL = tauy_YPL + K_YPL*shearrate**m_YPL
-    sigmacalcPL = K_PL*shearrate**m_PL
+#Generate the sidebards for dial reading entries-------------------------------
+for i in range(6):
+    globals()['entry_{}'.format(i)] = st.sidebar.slider(
+        'Viscometer Dial Reading at  at {} RPM'.format(visc_rpm[i]), 
+        min_value = 0, value = int(visc_rpm[i]/10), max_value = 100, step=1)
+    dial_readings.append(globals()['entry_{}'.format(i)])
 
-    st.subheader ("Herschel Bulkley (Yield Power Law) Model Rheological Constants")
-    st.write("Yield stress ($t_{y}$) is", round(tauy_YPL,2), "$Pa$")
-    st.write("Consistency index (K) is", round(K_YPL,4), "$Pa.s^{n}$")
-    st.write("Flow index (n) is", round(m_YPL,2))
-    st.write("Coefficient of determination ($R^2$) is", round(r2_YPL,3))
-     
-    st.subheader ("Power-Law Model Rheological Constants")
-    st.write("Consistency index (K) is", round(K_PL,4), "$Pa.s^{n}$")
-    st.write("Flow index (n) is", round(m_PL,2))
-    st.write("Coefficient of determination ($R^2$) is", round(r2_PL,3))
-    
-    st.subheader ("Bingham Plastic Model Rheological Constants")
-    st.write("Plastic viscosity (PV) is", sigma[0]-sigma[1] , "$cp$") 
-    st.write("Yield point (YP) is", 2*sigma[1]-sigma[0], "$lb/100ft^2$")
-    st.write("Coefficient of determination ($R^2$) is", round(r2_BP,3))
-    
-    fig = plt.figure(figsize=(8,5))
-    ax = fig.add_subplot(1,1,1)
-    
-    ax.scatter(x=shearrate,y=shearstress,label="Measured viscometer data", color="red")
+#Entries: if higher RPM value entered is lower than next one, make corrections-
+for i in range(5):
+    if dial_readings[i]<dial_readings[i+1]:
+        dial_readings[i] = dial_readings[i+1]
 
-    ax.plot(shearrate,sigmacalcYPL,label="Yield Power-law model fit",color="blue")
-    ax.plot(shearrate,sigmacalcPL,label="Power-law model fit",color="orange")
-    ax.plot(shearrate,sigmacalcBP,label="Bingham Plastic model Fit",color="green")    
+#Perform curve fitting for all three rheological models------------------------
+shear_stress = np.asarray(dial_readings) * 1.066 * 0.4788 #unit conversion from DR to Pascal
 
-    ax.set_xlabel("Shear Rate (1/s)")
-    ax.set_ylabel("Shear Stress (Pa)")
-    ax.set_xlim(0,1200)
-    ax.set_ylim(0,round(max(shearstress)+10,0))
-    ax.legend()
-    st.write(fig)
+ty_YPL,K_YPL,n_YPL,r2_YPL = YPL(shear_stress,shear_rate)
+K_PL,n_PL,r2_PL = PL(shear_stress,shear_rate)
+r2_BP,PV,YP = BP(shear_stress,shear_rate)
+
+#Denoised values for visuals---------------------------------------------------
+shear_stress_calc_YPL = YPLfunction(shear_rate, ty_YPL, K_YPL, n_YPL)
+shear_stress_calc_PL = PLfunction(shear_rate, K_PL, n_PL)
+shear_stress_calc_BP = BPfunction(shear_rate, PV, YP)
+
+#Printing out the rheological constants for each model-------------------------
+st.subheader ("Herschel Bulkley (Yield Power Law) Model Rheological Constants")
+st.write("Yield stress ($t_{y}$) is", round(ty_YPL,2), "$Pa$")
+st.write("Consistency index (K) is", round(K_YPL,4), "$Pa.s^{n}$")
+st.write("Flow index (n) is", round(n_YPL,2))
+st.write("Coefficient of determination ($R^2$) is", round(r2_YPL,3))
+ 
+st.subheader ("Power-Law Model Rheological Constants")
+st.write("Consistency index (K) is", round(K_PL,4), "$Pa.s^{n}$")
+st.write("Flow index (n) is", round(n_PL,2))
+st.write("Coefficient of determination ($R^2$) is", round(r2_PL,3))
+
+st.subheader ("Bingham Plastic Model Rheological Constants")
+st.write("Plastic viscosity (PV) is", dial_readings[0]-dial_readings[1] , "$cp$") 
+st.write("Yield point (YP) is", 2*dial_readings[1]-dial_readings[0], "$lb/100ft^2$")
+st.write("Coefficient of determination ($R^2$) is", round(r2_BP,3))
+
+#Visuazalization---------------------------------------------------------------
+fig = plt.figure(figsize=(8,5))
+ax = fig.add_subplot(1,1,1)
+
+ax.scatter(x=shear_rate,y=shear_stress,
+           label="Measured viscometer data", color="red")
+
+ax.plot(shear_rate,shear_stress_calc_YPL,
+        label="Yield Power-law model fit",color="blue")
+
+ax.plot(shear_rate,shear_stress_calc_PL,
+        label="Power-law model fit",color="orange")
+
+ax.plot(shear_rate,shear_stress_calc_BP,
+        label="Bingham Plastic model Fit",color="green")    
+
+ax.set_xlabel("Shear Rate (1/s)")
+ax.set_ylabel("Shear Stress (Pa)")
+ax.set_xlim(0,round(max(shear_rate)+40,0))
+ax.set_ylim(0,round(max(shear_stress)+10,0))
+ax.legend()
+
+#Write the figure to streamlit-------------------------------------------------
+st.write(fig)
+
+#Deciding the best fit to the data---------------------------------------------
+if round(r2_BP,3) >= round(r2_PL,3) and round(r2_BP,3) >=round(r2_YPL,3):
+    st.subheader("Bingham plastic (BP) model provides the best fit to the data.")
+
+elif round(r2_PL,3) >= round(r2_BP,3) and round(r2_PL,3) >= round(r2_YPL,3):
+    st.subheader("Power law (PL) model provides the best fit to the data.")
+
+else:
+    st.subheader("Yield power law (YPL) model provides the best fit to the data.")
     
-    if r2_YPL > r2_BP and r2_YPL>r2_PL:
-        st.subheader("Yield power law (YPL) model provides the best fit to the data.")
-        
-    if r2_PL >= r2_BP and r2_PL>=r2_YPL:
-        st.subheader("Power law (PL) model provides the best fit to the data.")
-    
-    if r2_BP >= r2_PL and r2_BP>=r2_YPL:
-        st.subheader("Bingham plastic (BP) model provides the best fit to the data.")
-    
-    
-    st.write("Developer: Sercan Gul (sercan.gul@gmail.com, https://github.com/sercangul)")
-    st.write("Source code: https://github.com/sercangul/apiviscometer")
-if __name__ == "__main__":
-    main()
+#Final remarks-----------------------------------------------------------------
+st.write("Developer: Sercan Gul (sercan.gul@gmail.com, https://github.com/sercangul)")
+st.write("Source code: https://github.com/sercangul/apiviscometer")
