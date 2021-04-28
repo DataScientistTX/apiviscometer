@@ -43,3 +43,11 @@ streamlit run app.py
 The same app is also deployed to Heroku: http://apiviscometer.herokuapp.com/
 
 Enter your dial readings obtained from a 6-speed API viscometer and investigate the rheological behavior of your fluid with curve fit results provided for Bingham Plastic, Power-Law and Yield-Power Law rheological models.
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## License
+[Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)
