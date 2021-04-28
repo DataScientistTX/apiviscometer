@@ -8,7 +8,7 @@ In the  terminal from the home directory, use the command git clone, then paste 
 git clone https://github.com/sercangul/apiviscometer.git
 ```
 
-Change directories to the new ~/FluidLab_GUI directory:
+Change directories to the new ~/apiviscometer directory:
 
 ```bash
 cd apiviscometer
