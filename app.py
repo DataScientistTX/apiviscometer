@@ -67,7 +67,7 @@ st.header("Drilling Fluid Rheological Model Parameters")
 st.write("This web-app is used to analyze API rotational viscometer data by comparing various rheological models.")
 st.write("The rheological constants for Yield Power-law (YPL - also called Herschel-Bulkley), Power-law, and Bingham-Plastic models are calculated and compared.")
 st.write("Please enter API viscometer readings using the slider on the left side.")
-
+st.write("NOTE: If you are not using a 6-speed viscometer, and need to enter rotation speed manually, please see viscometerapi.herokuapp.com")
 #Define shearrate and rpm values used in the viscometer (for 6-speed viscometer)
 visc_rpm = [600,300,200,100,6,3]
 shear_rate = np.asarray(visc_rpm) * 1.7011 #unit conversion from RPM to 1/s
