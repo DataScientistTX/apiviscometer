@@ -1,6 +1,6 @@
 # A Dashboard to Calculate Rheological Properties from 6-Speed API Viscometer Measurements
 
-![alt text](https://github.com/sercangul/dataprofile/blob/main/gif.gif "Logo Title Text 1")
+![alt text](https://github.com/sercangul/apiviscometer/blob/main/gif.gif "Logo Title Text 1")
 
 ## Installation
 
