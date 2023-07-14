@@ -86,7 +86,7 @@ for i in range(5):
         dial_readings[i] = dial_readings[i+1]
 
 #Perform curve fitting for all three rheological models------------------------
-shear_stress = np.asarray(dial_readings) * 1.066 * 0.4788 #unit conversion from DR to Pascal
+shear_stress = np.asarray(dial_readings) * 0.5104 #1.066 * 0.4788 #unit conversion from DR to Pascal
 
 ty_YPL,K_YPL,n_YPL,r2_YPL = YPL(shear_stress,shear_rate)
 K_PL,n_PL,r2_PL = PL(shear_stress,shear_rate)
