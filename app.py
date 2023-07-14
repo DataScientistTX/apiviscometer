@@ -34,8 +34,7 @@ def BPfunction(y,PV,YP):
 def r2(residuals,shear_stress,shear_rate):
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((shear_stress-np.mean(shear_stress))**2)
-    r_squared = 1 - (ss_res / ss_tot) 
-    return r_squared
+    return 1 - (ss_res / ss_tot) 
 
 def PL(shear_stress,shear_rate):
     popt, pcov = curve_fit(PLfunction,shear_rate,shear_stress)
